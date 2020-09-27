@@ -2,43 +2,49 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 from core.cfg import *
+import torchvision.transforms as transforms
 import os
 import time
 import math
 import numpy as np
+from PIL import Image
+from core import *
+from tools.cfg import SQUARE_IMAGE_PATH
 class DetectData(Dataset):
-    def __init__(self,label_416,npy_path):
-        self.label_path=label_416
-        self.npy_path=npy_path
+    def __init__(self):
+        # self.label_path=LABEL_416
+        # self.img_path=SQUARE_IMAGE_PATH
+        # self.img_path =r'E:\overfit_data\square\images'
+        self.img_path = r'E:\VOC2017_gened\images'
+        # self.label_path =r'E:\overfit_data\square\label.txt'
+        self.label_path =r'E:\VOC2017_416\label.txt'
         #==========读取txt文档======
         with open(self.label_path,'r') as f:
             self.text=f.readlines()
+
+        self.data_paths=[]
         # ==========读取txt文档======
-        self.data_paths = []
-        self.data_buffer=[]
-        dir = os.listdir(self.npy_path)
-        #=======数据路径解析========
         for i in range(len(self.text)):
-            data_segement=self.text[i].split() #将字符串解析为list
-            data_name=data_segement[0] #第一个元素存的是文件名 ’xxx.jpg‘
-            data_name,_=data_name.split('.')
-            data_name=data_name+'.npy'
-            self.data_paths.append(os.path.join(self.npy_path,data_name))
+            data_segement = self.text[i].split()  # 将字符串解析为list
+            data_name = data_segement[0]  # 第一个元素存的是文件名 ’xxx.jpg'
+            self.data_paths.append(os.path.join(self.img_path,data_name))
+        #=======数据路径解析========
+        # print(self.data_paths)
         # =======数据路径解析========
-        # =======数据内容解析========
-        #将内容转换为list，元素为int
-            data=data_segement[1:]
-            data=list(map(int,data))
-            self.data_buffer.append(data)
-        # =======数据内容解析========
-        # 初始化占用60M左右内存，估计的
+
 
     def __len__(self):
-        return (len(self.data_buffer))
+        return (len(self.data_paths))
     def __getitem__(self, item):
-        #===拿图片数据，注意使用float16===
-        img_data=torch.tensor(np.load(self.data_paths[item])).to(dtype=torch.float32)
-        # ===拿图片数据，注意使用float16===
+        #===拿图片数据，注意使用===
+        img_data=Image.open(self.data_paths[item])
+        # print('第几张图片=>',self.data_paths[item])
+        resizer = transforms.Resize((416, 416))
+        img_data = resizer(img_data)
+        to_tensor = transforms.ToTensor()
+        img_data = to_tensor(img_data)
+        # ===拿图片数据，注意===
+
         #===制作标签=============
 
         label_segent=self.text[item].split()
@@ -61,6 +67,7 @@ class DetectData(Dataset):
         for feature_size, anchors in ANCHOR_BOXES.items():
             # 给labels添加key,并初始化值,{13:[13,13,3,25]},13：feature_size,3:3种形状，25:5+20个类
             labels[feature_size] = np.zeros(shape=(feature_size, feature_size, 3, 5 + len(LABEL)))
+        # print(labels)
 
         #取出box后分别与9个框比较IOU，将值赋给最大的那个anchor
         for i,box in enumerate(boxes):
@@ -69,7 +76,7 @@ class DetectData(Dataset):
             anchor_order = 0
             cls_order = i
             max_iou = 0
-
+            # print('对图片中的目标 {} 筛选合适的框'.format(i))
             #对9个anchor进行遍历
             for feature_size, anchors in ANCHOR_BOXES.items():
                 for _three,anchor in enumerate(anchors):
@@ -80,7 +87,10 @@ class DetectData(Dataset):
                         max_iou = iou
                         anchor_order = _three
                         feature_key = feature_size
-
+            #             print('{},max—iou=>{}'.format(_three,max_iou))
+            #             print('{},feature_key=>{}'.format(feature_size,feature_key ))
+            # print('筛选结束','==='*10)
+            #
             # print('best_iou_feature_size=>',feature_key)
             # print('best_box_anchor=>',ANCHOR_BOXES[feature_key][anchor_order])
             # print('anchor_order=>',anchor_order)
@@ -101,11 +111,12 @@ class DetectData(Dataset):
         #     [iou,cy,cy,w,h,cls]->[freature_size,freature_size,3,5+cls_num]
         #     labels[feature_key][int(index_x), int(index_y), anchor_order] = [max_iou, offset_cx, offset_cy, p_w,p_h, *cls[cls_order]]
 
-            labels[feature_key][int(index_x),int(index_y),anchor_order]=[max_iou,offset_cx,offset_cy,np.log(p_w),np.log(p_h),*cls[cls_order]]
+            labels[feature_key][int(index_x),int(index_y),anchor_order]=[max_iou,offset_cx,offset_cy,np.log(p_h),np.log(p_w),*cls[cls_order]]
         # print('某个label=>',labels[13][9,7,1])
 
         return img_data,labels[13],labels[26],labels[52]
-
+# import numpy as np
 # data=DetectData()
-# a=data[2]
-# print(type(a))
+# it=[i for i in range(10)]
+# im=np.random.choice(it)
+# a=data[im]

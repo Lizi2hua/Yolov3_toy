@@ -41,15 +41,17 @@ class transformer():
                 resizer = transforms.Resize((IMAGE_SIZE, IMAGE_SIZE))
                 img_data = resizer(img_data)
                 to_tensor = transforms.ToTensor()
-                # img_data = to_tensor(img_data)
+                img_data = to_tensor(img_data)
                 # print(img_data)
                 # exit()
                 #将原本的float32转换为float16
-                img_data = to_tensor(img_data).to(dtype=torch.float16)
+                # img_data = to_tensor(img_data).to(dtype=torch.float16)
+                #float32
+                img_data = to_tensor(img_data) #30G左右空间
                 # print(img_data.dtype)
                 # exit()
                 img_data = np.array(img_data)
-                # np.save(os.path.join(self.array_path,"{}.npy".format(i)),img_data)
+                np.save(os.path.join(self.array_path,"{}.npy".format(i)),img_data)
                 time.sleep(0.01)
 
                 # ==========图像变为416*416==============

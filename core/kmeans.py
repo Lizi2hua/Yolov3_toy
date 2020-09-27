@@ -86,7 +86,7 @@ if __name__ == '__main__':
         #取出图片名称之外的数据
         img_name=list_str[0]
         data=list_str[1:]#['14', '380', '329', '44', '138', '14', '269', '305', '26', '66']
-        #得到当前数据中含有的目标个书
+        #得到当前数据中含有的目标个数
         obj_nums=len(data)//5
         print('{}中有{}个框'.format(img_name,obj_nums))
         #从框中取出w,h

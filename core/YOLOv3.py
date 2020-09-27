@@ -17,9 +17,9 @@ class YOLOv3(nn.Module):
         dect_13,dect_26,dect_52=self.head(_13,_26,_52)
         return dect_13,dect_26,dect_52
 
-# model=YOLOv3(20,backbone=BACKBONE)
-# data=torch.randn(1,3,416,416)
-# _13,_26,_52=model(data)
+model=YOLOv3(20,backbone=BACKBONE)
+data=torch.randn(1,3,416,416)
+_13,_26,_52=model(data)
 # print(_13.shape)
 # print(_26.shape)
 # print(_52.shape)

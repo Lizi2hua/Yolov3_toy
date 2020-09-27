@@ -18,7 +18,7 @@ anchor_boxes = [
     [28,48],
     [51,109],
     [262,144],
-]
+] #[w,h]
 LABEL={
     'aeroplane':0,
     'bicycle':1,
@@ -42,6 +42,7 @@ LABEL={
     'tvmonitor':19,
     }#标签编码
 
+
 def sort(anchors):
     '''
     对anchor以面积进行排序
@@ -57,12 +58,13 @@ def sort(anchors):
 sort_index = sort(anchor_boxes)
 
 ANCHOR_BOXES = {
-    13: [anchor_boxes[sort_index[0]], anchor_boxes[sort_index[1]], anchor_boxes[sort_index[2]]],
-    26: [anchor_boxes[sort_index[3]], anchor_boxes[sort_index[4]], anchor_boxes[sort_index[5]]],
-    52: [anchor_boxes[sort_index[6]], anchor_boxes[sort_index[7]], anchor_boxes[sort_index[8]]]
+    13: [anchor_boxes[sort_index[-1]], anchor_boxes[sort_index[-2]], anchor_boxes[sort_index[-3]]],
+    26: [anchor_boxes[sort_index[-4]], anchor_boxes[sort_index[-5]], anchor_boxes[sort_index[-6]]],
+    52: [anchor_boxes[sort_index[-7]], anchor_boxes[sort_index[-8]], anchor_boxes[sort_index[-9]]]
 }
 ANCHOR_BOXES_AREA={
     13:[ANCHOR_BOXES[13][0][0]*ANCHOR_BOXES[13][0][1],ANCHOR_BOXES[13][1][0]*ANCHOR_BOXES[13][1][1],ANCHOR_BOXES[13][2][0]*ANCHOR_BOXES[13][2][1]],
     26:[ANCHOR_BOXES[26][0][0]*ANCHOR_BOXES[26][0][1],ANCHOR_BOXES[26][1][0]*ANCHOR_BOXES[26][1][1],ANCHOR_BOXES[26][2][0]*ANCHOR_BOXES[26][2][1]],
     52:[ANCHOR_BOXES[52][0][0]*ANCHOR_BOXES[52][0][1],ANCHOR_BOXES[52][1][0]*ANCHOR_BOXES[52][1][1],ANCHOR_BOXES[52][2][0]*ANCHOR_BOXES[52][2][1]],
 }
+# print(ANCHOR_BOXES)
