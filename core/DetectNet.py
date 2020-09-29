@@ -25,12 +25,12 @@ class UpSample(nn.Module):
         return nn.functional.interpolate(x,scale_factor=2,mode='nearest')
 
 class DetectNet(nn.Module):
-    def __init__(self,num_cls):
+    def __init__(self,num_cls,feature_13_channel=1024,feature_26_channel=512,feature_52_channel=256):
         super(DetectNet, self).__init__()
         self.out_channel = 3 * (5 + num_cls)
-        self.feature_13_channel=1024
-        self.feature_26_channel=512
-        self.feature_52_channel=256
+        self.feature_13_channel=feature_13_channel
+        self.feature_26_channel=feature_26_channel
+        self.feature_52_channel=feature_52_channel
         #13
         self.convset_13=nn.Sequential(
             ConvSet(self.feature_13_channel,512)
@@ -87,10 +87,10 @@ class DetectNet(nn.Module):
         return dect13_out,dect26_out,dect52_out
 
 
-# dect=DetectNet(20)
-# h_13=torch.randn(2,1024,13,13)
-# h_26=torch.randn(2,512,26,26)
-# h_52=torch.randn(2,256,52,52)
+# dect=DetectNet(20,feature_13_channel=960,feature_26_channel=480,feature_52_channel=240)
+# h_13=torch.randn(2,960,13,13)
+# h_26=torch.randn(2,480,26,26)
+# h_52=torch.randn(2,240,52,52)
 # _13,_26,_52=dect(h_13,h_26,h_52)
 # print(_13.shape)
 # print(_26.shape)

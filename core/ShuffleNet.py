@@ -83,12 +83,13 @@ class ShuffleUnit(nn.Module):
     def forward(self,x):
         residual=x
         if self.commbine=='add':
-            return residual+self.shuffle_unit(x)
+            out=residual+self.shuffle_unit(x)
+            return nn.functional.relu(out)
         if self.commbine=='cat':
             residual=nn.functional.avg_pool2d(residual,kernel_size=3,stride=2,padding=1)
             out=self.shuffle_unit(x)
             out=torch.cat((residual,out),dim=1)#[N,C,H,W],C cat
-            return out
+            return nn.functional.relu(out)
 
     def _make_shuffle_unit(self,stride):
         shuffle_unit=nn.Sequential(
@@ -107,8 +108,8 @@ class ShuffleNet(nn.Module):
         super(ShuffleNet, self).__init__()
         self.stage_repeat=[-1,3,7,7,3]#stage1,stage2,stage3,stage4,-1自动报错
         #TODO:RuntimeError: Given groups=3, weight of size [60, 80, 1, 1], expected input[1, 264, 104, 104] to have 240 channels, but got 264 channels instead fix
-        """判断是cat出了问题，比如24+120=144，但是后面add时候只要120，还有每个unit后面没加激活"""
-        self.output_channles=[24,240,408,960,1920]
+        """判断是cat出了问题，比如24+120=144，但是后面add时候只要120"""
+        self.output_channles=[24,120,240,480,960]
         self.groups=3
         self.conv1=nn.Conv2d(3,self.output_channles[0],kernel_size=3,stride=2,padding=1,bias=False)
         self.stage1=self._make_stage(1)
@@ -123,7 +124,7 @@ class ShuffleNet(nn.Module):
         out26=self.stage3(out52)
         out13=self.stage4(out26)
 
-        return out52,out26,out13
+        return out13,out26,out52
 
     def _make_stage(self,stage):
         module=OrderedDict()
@@ -133,13 +134,20 @@ class ShuffleNet(nn.Module):
             raise ValueError('stage name shloud be one of [1,2,3,4],but got {}'.format(repeat_shuffle))
         head_module=ShuffleUnit(
             in_channel=self.output_channles[stage-1],
-            out_channel=self.output_channles[stage],
+            out_channel=self.output_channles[stage]-self.output_channles[stage-1],
             group=self.groups,
             commbine='cat'
         )
         head_name=stage_name+'[downsample]'
         module[head_name]=head_module
-
+        # first_name=stage_name+'[shffle_0]'
+        # first=ShuffleUnit(
+        #     in_channel=self.output_channles[stage-1]+self.output_channles[stage],
+        #     out_channel=self.output_channles[stage],
+        #     group=self.groups,
+        #     commbine='add'
+        # )
+        # module[first_name]=first
         for i in range(repeat_shuffle):
             repeat_name=stage_name+'[shuffle_{}]'.format(i)
             repeat_module=ShuffleUnit(
@@ -152,8 +160,10 @@ class ShuffleNet(nn.Module):
         return nn.Sequential(module)
 
 
-model=ShuffleNet()
-data=torch.randn(1,3,416,416)
-print(model)
-_52,_26,_13=model(data)
-print(_52.shape)
+# model=ShuffleNet()
+# data=torch.randn(1,3,416,416)
+# print(model)
+# _52,_26,_13=model(data)
+# print(_52.shape)
+# print(_26.shape)
+# print(_13.shape)

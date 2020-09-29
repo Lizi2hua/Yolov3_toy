@@ -13,14 +13,15 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy
 
-BATCH_SIZE=4
-BACKBONE=DarkNet53()
+BATCH_SIZE=1
+# BACKBONE=DarkNet53()
 
 class Train():
     def __init__(self):
         # self.dataset=DetectData(LABEL_416,NPY_PATH)
         self.dataset = DetectData()
-        self.net=YOLOv3(20,BACKBONE).cuda()
+        # self.net=YOLOv3(20,BACKBONE).cuda()
+        self.net = YOLOv3(20, use_mode='shufflenet').cuda()
         self.summary=SummaryWriter(LOG_DIR)
         self.opt=optim.Adam(self.net.parameters(),lr=1e-3)
         #判断save path是否存在，如果存在，判断是否有存储的pt文件并加载最后一轮pt文件
@@ -124,6 +125,7 @@ class Train():
                            +torch.mean((p_hw_label-p_hw)**2)
                            +torch.mean((cls_label-cls)**2)
                            )
+            #TODO:系数问题，不加似乎拟合慢
             # return (1-alpha)*positive_loss+alpha*negetive_loss
             return  positive_loss + negetive_loss
         #为空的话只需计算iou损失
@@ -179,7 +181,7 @@ class Train():
             self.summary.add_scalar('loss_13',loss_13_mean,cont_eopch)
             self.summary.add_scalar('loss_26', loss_26_mean,cont_eopch)
             self.summary.add_scalar('loss_52', loss_52_mean,cont_eopch)
-            save_model_path=os.path.join(self.cwd,'overfit_version_{}'.format(cont_eopch))
+            save_model_path=os.path.join(self.cwd,'shuffle_1pic_version.pt'.format(cont_eopch))
             # save_model_path = os.path.join(self.cwd, 'all_version_{}.pt'.format(cont_eopch))
             torch.save(self.net.state_dict(),save_model_path)
 

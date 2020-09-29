@@ -99,7 +99,35 @@ from PIL import Image
 # b=torch.transpose(b,1,2).contiguous()
 #
 # print(b.shape)
-import  torchvision.models  as models
-model=models.shufflenet_v2_x1_0(pretrained=False)
+# import  torchvision.models  as models
+# model=models.shufflenet_v2_x1_0(pretrained=False)
+#
+# print(model)
+t=416/13
+#原来的坐数据：14 223 188 146 208
+#数据集的数据
+import math
+cx=223
+cy=188
+w=146
+h=208
+offx,index_x=math.modf(cx/t)
+offy,index_y=math.modf(cy/t)
+#变为数据集的格式
+vecs=torch.tensor([0.9,offx,offy,h,w,14])
+#反算
+cx=index_x+vecs[]
 
-print(model)
+# cx=(idxs[:,1].float()+vecs[:,2])*t#图片的x和二维数组的x不同
+# cy=(idxs[:,2].float()+vecs[:,1])*t
+# w=anchors[a,0]*torch.exp(vecs[:,4])
+# h=anchors[a,1]*torch.exp(vecs[:,3])
+# # cx = (idxs[:, 1].float() + vecs[:, 1]) * t  # 图片的x和二维数组的x不同
+# # cy = (idxs[:, 2].float() + vecs[:, 2]) * t
+# # w = anchors[a, 0] * torch.exp(vecs[:, 4])
+# # h = anchors[a, 1] * torch.exp(vecs[:, 3])
+#
+# top_x=cx-w/2
+# top_y=cy-h/2
+# botton_x=top_x+w
+# botton_y=top_y+h
